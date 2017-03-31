@@ -8,7 +8,7 @@ with open('README.rst') as f:
     readme = f.read()
 
 with open('LICENSE') as f:
-    license = f.read()
+    lic = f.read()
 
 # Obtain the numpy include directory.  This logic works across numpy versions.
 try:
@@ -16,12 +16,16 @@ try:
 except AttributeError:
     numpy_include = numpy.get_numpy_include()
 
-correlation_module = Extension('sga.toolbox._correlation', 
+correlation_module = Extension('sga.toolbox._c_correlation', 
         sources=['sga/toolbox/src/correlation.i', 'sga/toolbox/src/correlation.c'],
         include_dirs = [numpy_include],
         swig_opts=['-modern', '-outdir', 'sga/toolbox/'],
         extra_compile_args = ["-O3"],
     )
+
+console_scripts = [
+    'sga-similarity=sga.similarity:main'
+]
 
 setup(
     name='sga',
@@ -32,8 +36,11 @@ setup(
     author='Matej Ušaj',
     author_email='usaj.m@utoronto.ca',
     url='https://github.com/usajusaj/sga_utils',
-    license=license,
+    license=lic,
     ext_modules = [correlation_module],
     packages=find_packages(exclude=('tests', 'docs')),
+    entry_points = {
+        'console_scripts': console_scripts,
+    }
 )
 

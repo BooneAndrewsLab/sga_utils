@@ -1,4 +1,4 @@
-%module correlation
+%module c_correlation
 
 // Numpy Related Includes:
 %{
