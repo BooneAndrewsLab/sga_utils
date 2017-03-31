@@ -1,0 +1,1 @@
+void correlation(double* npyArray2D, int npyLength1D, int npyLength2D, double* resultArray2D, int resLen1D, int resLen2D);
