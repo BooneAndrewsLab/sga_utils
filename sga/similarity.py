@@ -146,17 +146,13 @@ class Similarity(object):
         self.fg_sim = self._similarity(data)
         return self.fg_sim
     
-    def quantile_normalization(self, data, refdist):
-        ind = data.count().sum()
-#         
-#         ind = find(~isnan(data));
-#         
-#         quantiles = 1/length(ind):1/length(ind):1
-#         refquant = quantile(refdist,quantiles)
-#         
-#         [vals,sort_ind]=sort(data(ind),'ascend')
-#         norm_dist = data
-#         norm_dist(ind(sort_ind))=refquant
+    def quantileNormalize(self, data, refdist):
+        percentiles = np.linspace(100. / data.shape[0], 100, num=data.shape[0])
+        ref_quantiles = np.percentile(refdist, percentiles, interpolation='midpoint') # interpolation used in matlab
+        sort_ind = np.argsort(data, kind='mergesort') # sorting alg used in matlab
+        result = np.zeros_like(data)
+        result[sort_ind] = ref_quantiles
+        return result
     
     def similarity(self):
         tsdata = self.ts_data.loc[
