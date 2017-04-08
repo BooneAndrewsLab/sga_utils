@@ -35,7 +35,7 @@ import pandas as p
 logger = logging.getLogger(__name__)
 
 try:
-    from . import c_correlation
+    from . import c_impl
     USE_OPT_CORR = True
 except ImportError:
     USE_OPT_CORR = False
@@ -51,13 +51,13 @@ def correlation(data, axis='rows'):
                 np.zeros((data.shape[0], data.shape[0])), 
                 index=data.index, 
                 columns=data.index)
-            c_correlation.correlation(data, result.values)
+            c_impl.correlation(data, result.values)
         else:
             result = p.DataFrame(
                 np.zeros((data.shape[1], data.shape[1])), 
                 index=data.columns, 
                 columns=data.columns)
-            c_correlation.correlation(data.T, result.values)
+            c_impl.correlation(data.T, result.values)
         return result
     else:
         if axis == 'rows':
