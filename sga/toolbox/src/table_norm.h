@@ -22,38 +22,4 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-%module c_impl
-
-// Numpy Related Includes:
-%{
-#define SWIG_FILE_WITH_INIT
-%}
-// numpy arrays
-%include "numpy.i"
-%init %{
-import_array(); // This is essential. We will get a crash in Python without it.
-%}
-
-// These names must exactly match the function declaration.
-%apply (double* IN_ARRAY2, int DIM1, int DIM2) \
-      {(double* npyArray2D, int npyLength1D, int npyLength2D)}
-%apply (double* INPLACE_ARRAY2, int DIM1, int DIM2) \
-      {(double* resultArray2D, int resLen1D, int resLen2D)}
-
-%include "correlation.h"
-
-%clear (double* npyArray2D, int npyLength1D, int npyLength2D);
-%clear (double* resultArray2D, int resLen1D, int resLen2D);
-
-%apply (double* IN_ARRAY1, int DIM1) \
-      {(double* data3_nn, int data3_len)}
-%apply (double* IN_ARRAY1, int DIM1) \
-      {(double* data2_nn, int data2_len)}
-%apply (long* INPLACE_ARRAY1, int DIM1) \
-      {(long* result, int result_len)}
-
-%include "table_norm.h"
-
-%clear (double* data3_nn, int data3_len);
-%clear (double* data2_nn, int data2_len);
-%clear (long* result, int result_len);
+void table_norm(double* data3_nn, int data3_len, double* data2_nn, int data2_len, long* result, int result_len);
