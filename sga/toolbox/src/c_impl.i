@@ -57,3 +57,16 @@ import_array(); // This is essential. We will get a crash in Python without it.
 %clear (double* data3_nn, int data3_len);
 %clear (double* data2_nn, int data2_len);
 %clear (long* result, int result_len);
+
+%apply (unsigned int* IN_ARRAY2, int DIM1, int DIM2) \
+      {(unsigned int* data, int dat1d, int dat2d)}
+%apply (double* INPLACE_ARRAY2, int DIM1, int DIM2) \
+      {(double* enrichment, int enr1d, int enr2d)}
+%apply (unsigned int* IN_ARRAY1, int DIM1) \
+      {(unsigned int* Fj, int Fj1d)}
+
+%include "safe.h"
+
+%clear (unsigned int* data, int dat1d, int dat2d);
+%clear (double* enrichment, int enr1d, int enr2d);
+%clear (unsigned int* Fj, int Fj1d);
