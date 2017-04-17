@@ -16,8 +16,8 @@ try:
 except AttributeError:
     numpy_include = numpy.get_numpy_include()
 
-correlation_module = Extension('sga.toolbox._c_correlation', 
-        sources=['sga/toolbox/src/correlation.i', 'sga/toolbox/src/correlation.c'],
+correlation_module = Extension('sga.toolbox._c_impl', 
+        sources=['sga/toolbox/src/c_impl.i', 'sga/toolbox/src/correlation.c', 'sga/toolbox/src/table_norm.c', ],
         include_dirs = [numpy_include],
         swig_opts=['-modern', '-outdir', 'sga/toolbox/'],
         extra_compile_args = ["-O3"],

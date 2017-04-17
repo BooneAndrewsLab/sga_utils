@@ -36,6 +36,7 @@ import pandas as p
 
 from .toolbox import correlation
 from .toolbox.utils import hdf5_read_str_list, read_strain_map
+from .toolbox.table_norm import table_normalize
 
 
 logger = logging.getLogger(__name__)
@@ -81,7 +82,8 @@ class Similarity(object):
     
     def _bjv_read_scores(self, dataset, root_ele):
         logger.debug("BJV-%s:Reading ORF list", root_ele)
-        orfs = np.array(list(map(lambda x: x.split('_')[1], hdf5_read_str_list(dataset, dataset.get('%s/Cannon/Orf' % (root_ele,))[0]))))
+#         orfs = np.array(list(map(lambda x: x.split('_')[1], hdf5_read_str_list(dataset, dataset.get('%s/Cannon/Orf' % (root_ele,))[0]))))
+        orfs = np.array(hdf5_read_str_list(dataset, dataset.get('%s/Cannon/Orf' % (root_ele,))[0]))
         
         logger.debug("BJV-%s:Generating query/array indices", root_ele)
         query_idx = np.extract(np.array(dataset.get('%s/Cannon/isQuery' % (root_ele,))[0], dtype=bool), np.arange(*orfs.shape))
@@ -116,10 +118,10 @@ class Similarity(object):
         
         if self.strain_map:
             logger.debug("Replacing strain ids with allele names.")
-            corr_rows.columns = [self.strain_map[c] for c in corr_rows.columns]
-            corr_rows.index = [self.strain_map[c] for c in corr_rows.index]
-            corr_cols.columns = [self.strain_map[c] for c in corr_cols.columns]
-            corr_cols.index = [self.strain_map[c] for c in corr_cols.index]
+            corr_rows.columns = [self.strain_map[c.split('_')[1]] for c in corr_rows.columns]
+            corr_rows.index = [self.strain_map[c.split('_')[1]] for c in corr_rows.index]
+            corr_cols.columns = [self.strain_map[c.split('_')[1]] for c in corr_cols.columns]
+            corr_cols.index = [self.strain_map[c.split('_')[1]] for c in corr_cols.index]
         
         unified_axis = sorted(set(list(corr_cols.index) + list(corr_rows.index)))
         logger.debug("Unified axis (%d) ready.", len(unified_axis))
@@ -133,49 +135,73 @@ class Similarity(object):
     def essential_similarity(self):
         logger.info("Computing similarity of essental strains profiles.")
         data = self.ts_data.loc[
-            [c for c in self.ts_data.index if c.startswith('tsa')], 
-            [c for c in self.ts_data.columns if c.startswith('tsq')]]
+            [c for c in self.ts_data.index if '_tsa' in c], 
+            [c for c in self.ts_data.columns if '_tsq' in c]]
         self.ts_sim = self._similarity(data)
         return self.ts_sim
     
     def nonessential_similarity(self):
         logger.info("Computing similarity of nonessental strains profiles.")
         data = self.fg_data.loc[
-            [c for c in self.fg_data.index if c.startswith('dma')], 
-            [c for c in self.fg_data.columns if c.startswith('sn')]]
+            [c for c in self.fg_data.index if '_dma' in c], 
+            [c for c in self.fg_data.columns if '_sn' in c]]
         self.fg_sim = self._similarity(data)
         return self.fg_sim
-    
-    def quantileNormalize(self, data, refdist):
-        percentiles = np.linspace(100. / data.shape[0], 100, num=data.shape[0])
-        ref_quantiles = np.percentile(refdist, percentiles, interpolation='midpoint') # interpolation used in matlab
-        sort_ind = np.argsort(data, kind='mergesort') # sorting alg used in matlab
-        result = np.zeros_like(data)
-        result[sort_ind] = ref_quantiles
-        return result
     
     def similarity(self):
         tsdata = self.ts_data.loc[
             :, 
-            [c for c in self.ts_data.columns if not c.startswith('y') and not c.startswith('damp')]]
+            [c for c in self.ts_data.columns if ('_y' not in c and '_damp' not in c)]]
         fgdata = self.fg_data.loc[
             :, 
-            [c for c in self.fg_data.columns if not c.startswith('y') and not c.startswith('damp')]]
+            [c for c in self.fg_data.columns if ('_y' not in c and '_damp' not in c)]]
         
 #         if self.strain_map:
 #             logger.debug("Replacing strain ids with allele names.")
-#             tsdata.columns = [strain_map[c] for c in tsdata.columns]
-#             tsdata.index = [strain_map[c] for c in tsdata.index]
-#             fgdata.columns = [strain_map[c] for c in fgdata.columns]
-#             fgdata.index = [strain_map[c] for c in fgdata.index]
+#             tsdata.columns = [self.strain_map[c] for c in tsdata.columns]
+#             tsdata.index = [self.strain_map[c] for c in tsdata.index]
+#             fgdata.columns = [self.strain_map[c] for c in fgdata.columns]
+#             fgdata.index = [self.strain_map[c] for c in fgdata.index]
+#             
+#             tsdata = tsdata.iloc[~tsdata.index.duplicated(), ~tsdata.columns.duplicated()]
+#             fgdata = fgdata.iloc[~fgdata.index.duplicated(), ~fgdata.columns.duplicated()]
 #         
 #         unified_axis = sorted(set(chain(tsdata.index, tsdata.columns, fgdata.index, fgdata.columns)))
-#         
-#         # Layer 1: FG QQ
-#         fg_qq = fgdata.corr(min_periods=3) - np.identity(fgdata.shape[1])
-#         
-#         # Layer 2: TS QQ (normalized based on TS AA)
-#         ts_qq = tsdata.corr(min_periods=3) - np.identity(tsdata.shape[1])
+        
+        # Layer 1: FG QQ
+        print('fg_qq')
+        fg_qq = correlation.correlation(fgdata, axis='columns')
+
+        # Layer 2: TS QQ (normalized based on TS AA)
+        print('ts_qq')
+        ts_qq = correlation.correlation(tsdata, axis='columns')
+        
+        common_queries = set(fgdata.columns).intersection(tsdata.columns)
+        common_arrays = set(fgdata.index).intersection(tsdata.index)
+        
+        # cc1 / data1
+        print('fg_aa')
+        tmp_fg_aa = correlation.correlation(fgdata.reindex(common_arrays, common_queries), axis='rows')
+        # cc2 / data2
+        print('ts_aa')
+        tmp_ts_aa = correlation.correlation(tsdata.reindex(common_arrays, common_queries), axis='rows')
+        
+        print('normalize')
+        ts_qq_norm = table_normalize(tmp_fg_aa, tmp_ts_aa, ts_qq)
+        
+        # Layer 3: FG AA
+        print('fg_aa')
+        fg_aa = correlation.correlation(fgdata, axis='rows')
+        
+        # Layer 4: TS AA (normalized)
+        print('ts_aa')
+        ts_aa = correlation.correlation(tsdata, axis='rows')
+        print('normalize')
+        ts_aa_norm = table_normalize(tmp_fg_aa, tmp_ts_aa, ts_aa)
+        
+        
+        
+#         return ts_qq_norm
     
     def _save(self, df, path):
         df.to_csv(path, sep='\t', index=True, header=True)

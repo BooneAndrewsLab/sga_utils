@@ -1,4 +1,4 @@
-'''
+/**
 MIT License
 
 Copyright (c) 2017 Matej Ušaj
@@ -20,20 +20,40 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+*/
 
-Created on Apr 10, 2017
+%module c_impl
 
-@author: Matej Ušaj
-'''
+// Numpy Related Includes:
+%{
+#define SWIG_FILE_WITH_INIT
+%}
+// numpy arrays
+%include "numpy.i"
+%init %{
+import_array(); // This is essential. We will get a crash in Python without it.
+%}
 
-import logging
+// These names must exactly match the function declaration.
+%apply (double* IN_ARRAY2, int DIM1, int DIM2) \
+      {(double* npyArray2D, int npyLength1D, int npyLength2D)}
+%apply (double* INPLACE_ARRAY2, int DIM1, int DIM2) \
+      {(double* resultArray2D, int resLen1D, int resLen2D)}
 
+%include "correlation.h"
 
-logger = logging.getLogger(__name__)
+%clear (double* npyArray2D, int npyLength1D, int npyLength2D);
+%clear (double* resultArray2D, int resLen1D, int resLen2D);
 
-try:
-    from . import c_impl
-    USE_C_OPT = True
-except ImportError:
-    USE_C_OPT = False
-    logger.warning('Using slower numpy code. Compile ext for an optimized version shipped with this code.')
+%apply (double* IN_ARRAY1, int DIM1) \
+      {(double* data3_nn, int data3_len)}
+%apply (double* IN_ARRAY1, int DIM1) \
+      {(double* data2_nn, int data2_len)}
+%apply (long* INPLACE_ARRAY1, int DIM1) \
+      {(long* result, int result_len)}
+
+%include "table_norm.h"
+
+%clear (double* data3_nn, int data3_len);
+%clear (double* data2_nn, int data2_len);
+%clear (long* result, int result_len);

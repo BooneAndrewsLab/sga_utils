@@ -22,24 +22,22 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-%module c_correlation
+#include "table_norm.h"
 
-// Numpy Related Includes:
-%{
-#define SWIG_FILE_WITH_INIT
-%}
-// numpy arrays
-%include "numpy.i"
-%init %{
-import_array(); // This is essential. We will get a crash in Python without it.
-%}
-// These names must exactly match the function declaration.
-%apply (double* IN_ARRAY2, int DIM1, int DIM2) \
-      {(double* npyArray2D, int npyLength1D, int npyLength2D)}
-%apply (double* INPLACE_ARRAY2, int DIM1, int DIM2) \
-      {(double* resultArray2D, int resLen1D, int resLen2D)}
-
-%include "correlation.h"
-
-%clear (double* npyArray2D, int npyLength1D, int npyLength2D);
-%clear (double* resultArray2D, int resLen1D, int resLen2D);
+void table_norm(double* data3_nn, int data3_len, 
+                double* data2_nn, int data2_len, 
+                long* result, int result_len) {
+    int i, j;
+    for (i = 0; i < data2_len; i++) {
+        for (j = 0; j < data3_len; j++) {
+            if (data3_nn[j] > data2_nn[i])
+                result[j]++;
+        }
+    }
+    
+    for (i = 0; i < result_len; i++) {
+        if (result[i] == 0) {
+            result[i] = 1;
+        }
+    }
+}
