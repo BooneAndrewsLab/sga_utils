@@ -3,3 +3,6 @@ sphinx
 pandas
 h5py
 numpy
+scipy
+matplotlib
+pillow
