@@ -31,21 +31,17 @@ import logging
 import numpy as np
 import pandas as p
 
+from . import USE_C_OPT
+
 
 logger = logging.getLogger(__name__)
-
-try:
-    from . import c_impl
-    USE_OPT_CORR = True
-except ImportError:
-    USE_OPT_CORR = False
-    logger.warning('Using slower pandas correlation function. Compile ext for an optimized version shipped with this code.')
 
 def correlation(data, axis='rows'):
     if axis not in ('rows', 'columns'):
         raise ValueError('Correlation axis must be either "rows" or "columns".')
     
-    if USE_OPT_CORR:
+    if USE_C_OPT:
+        from . import c_impl
         if axis == 'rows':
             result = p.DataFrame(
                 np.zeros((data.shape[0], data.shape[0])), 
