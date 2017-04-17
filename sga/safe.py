@@ -28,6 +28,7 @@ Created on Apr 12, 2017
 
 import math
 import sys
+import six
 
 import numpy as np
 import pandas as p
@@ -38,26 +39,31 @@ import scipy.stats as stats
 class Safe(object):
     enrichmentDF = None
     
-    def __init__(self, network_path, attributes_path, neighbors_path=None, distance_threshold=.5, region_specific=False):
-        self.network_path = network_path
-        self.attributes_path = attributes_path
-        
+    def __init__(self, network, attributes, neighbors=None, distance_threshold=.5, region_specific=False):
         # Read network file
-        if network_path.endswith('.csv'):
-            self.network = p.read_csv(network_path, index_col=0)
+        if isinstance(network, six.string_types):
+            if network.endswith('.csv'):
+                self.network = p.read_csv(network, index_col=0)
+            else:
+                raise Exception("Unknown network file type: %s" % network)
         else:
-            raise Exception("Unknown network file type: %s" % network_path)
+            self.network = network
         
         # Read attributes file
-        if attributes_path.endswith('.csv'):
-            self.attributes = p.read_csv(attributes_path, index_col=0)
+        if isinstance(attributes, six.string_types):
+            if attributes.endswith('.csv'):
+                self.attributes = p.read_csv(attributes, index_col=0)
+            else:
+                raise Exception("Unknown attributes file type: %s" % attributes)
         else:
-            raise Exception("Unknown attributes file type: %s" % attributes_path)
+            self.attributes = attributes
         
-        if not neighbors_path:
+        if not neighbors:
             self.generate_neighbors(distance_threshold)
+        elif isinstance(neighbors, six.string_types):
+            self.read_neighbors(neighbors)
         else:
-            self.read_neighbors(neighbors_path)
+            self.network = self.network.join(neighbors)
     
     def generate_neighbors(self, distance_threshold=.5):
         d = np.percentile(space.distance.pdist(self.network, 'euclidean'), distance_threshold)
