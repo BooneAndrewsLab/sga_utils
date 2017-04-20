@@ -1,7 +1,7 @@
 '''
 MIT License
 
-Copyright (c) 2017 Matej Ušaj
+Copyright (c) 2017 Matej Usaj
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +23,7 @@ SOFTWARE.
 
 Created on Apr 10, 2017
 
-@author: Matej Ušaj
+@author: Matej Usaj
 '''
 
 import logging
