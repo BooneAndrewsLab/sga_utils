@@ -24,7 +24,7 @@ correlation_module = Extension('sga.toolbox._c_impl',
         sources=['sga/toolbox/src/c_impl.i', 'sga/toolbox/src/correlation.c', 'sga/toolbox/src/table_norm.c', 'sga/toolbox/src/safe.c'],
         include_dirs = [numpy_include],
         swig_opts=['-threads', '-modern', '-outdir', 'sga/toolbox/'],
-        libraries = ['gsl'],
+        libraries = ['gsl', 'gslcblas','m'],
         extra_compile_args = ["-O3"],
     )
 
@@ -39,7 +39,7 @@ setup(
     description='SGA Utilities',
     install_requires=required,
     long_description=readme,
-    author='Matej Ušaj',
+    author='Matej Usaj',
     author_email='usaj.m@utoronto.ca',
     url='https://github.com/usajusaj/sga_utils',
     license=lic,
