@@ -109,10 +109,17 @@ class Safe(object):
         if USE_C_OPT and not force_python_impl:
             from .toolbox import c_impl
             
+            index_map = dict(zip(self.attributes.index, range(len(self.attributes.index))))
             enrichment = np.zeros((len(self.network.index), len(self.attributes.columns)))
             
-            cdata = self.network.iloc[:,2].apply(lambda x: self.attributes.ix[set(x)].sum())
-            cdata['len'] = self.network.iloc[:,2].apply(len)
+            cdata = []
+            def sum_attrib(x):
+                idxs = [index_map[x] for x in set(x[2])]
+                r = self.attributes.values[idxs,:].sum(axis=0)
+                cdata.append(list(r) + [len(x[2])])
+            
+            np.apply_along_axis(sum_attrib, 1, self.network)
+            cdata = p.DataFrame(cdata, columns=list(self.attributes.columns) + ['len'], index=self.network.index)
             cdata = cdata.astype(np.uint32)
             
             Fj = self.attributes.sum().astype(np.uint32)
