@@ -44,7 +44,6 @@ setup(
     url='https://github.com/usajusaj/sga_utils',
     license=lic,
     ext_modules = [correlation_module],
-    py_modules=['sga.toolbox.c_impl'],
     packages=find_packages(exclude=('tests', 'docs')),
     entry_points = {
         'console_scripts': console_scripts,
