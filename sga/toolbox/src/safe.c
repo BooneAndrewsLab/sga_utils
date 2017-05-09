@@ -36,7 +36,7 @@ void safe(unsigned int* data, int dat1d, int dat2d,
           double* enrichment, int enr1d, int enr2d,
           unsigned int* Fj, int Fj1d) {
     const int N = dat1d;
-    const double eps = -log10(.05/Fj1d) / 16.;
+//     const double eps = -log10(.05/Fj1d) / 16.;
 
     unsigned int U;
     int i, j, datIdx;
@@ -55,7 +55,7 @@ void safe(unsigned int* data, int dat1d, int dat2d,
             normcdf = isinf(normcdf) ? 16. : normcdf;
 
             normcdf = min(normcdf, 16.) / 16.;
-            if (normcdf < eps) normcdf = 0.;
+//             if (normcdf < eps) normcdf = 0.;
 
             enrichment[i * enr2d + j] = normcdf;
         }
