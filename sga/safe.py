@@ -26,8 +26,6 @@ Created on Apr 12, 2017
 @author: Matej Ušaj
 '''
 
-import math
-import sys
 import six
 
 import numpy as np
@@ -89,12 +87,12 @@ class Safe(object):
         self.binary_attributes = not np.setdiff1d(np.unique(self.attributes), [0,1])
 
     def normalizeP(self, p, Fj):
-        if p == 0.0: # Some return 0.0 for some reason? Solved as below
-            p = sys.float_info.min
+#         if p == 0.0: # Some return 0.0 for some reason? Solved as below
+#             p = sys.float_info.min
         # Convert p-values into normalized neighborhood enrichment scores
         # Min p-value that Matlab can calculate: Pmin = 10**(-16) => -log10(Pmin) = 16.0
-        p = min(-math.log10(p), 16.0) / 16.0
-        if p < (-math.log10(0.05/len(Fj)) / 16.0): # Significantly enriched attributes
+        p = min(-np.log10(p), 16.0) / 16.0
+        if p < (-np.log10(0.05/len(Fj)) / 16.0): # Significantly enriched attributes
             p = 0.0
         return p
 
@@ -105,6 +103,8 @@ class Safe(object):
     
     def calculate(self, force_python_impl=False):
         from .toolbox import USE_C_OPT
+        
+        # TODO: compare cdf outputs of c and python implementation
         
         if USE_C_OPT and not force_python_impl:
             from .toolbox import c_impl
