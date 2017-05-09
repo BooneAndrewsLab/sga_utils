@@ -1,7 +1,7 @@
 '''
 MIT License
 
-Copyright (c) 2017 Matej Ušaj
+Copyright (c) 2017 Matej Usaj
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +23,7 @@ SOFTWARE.
 
 Created on Apr 12, 2017
 
-@author: Matej Ušaj
+@author: Matej Usaj
 '''
 
 import six
@@ -109,10 +109,16 @@ class Safe(object):
         if USE_C_OPT and not force_python_impl:
             from .toolbox import c_impl
             
+            index_map = dict(zip(self.attributes.index, range(len(self.attributes.index))))
             enrichment = np.zeros((len(self.network.index), len(self.attributes.columns)))
             
-            cdata = self.network.iloc[:,2].apply(lambda x: self.attributes.ix[set(x)].sum())
-            cdata['len'] = self.network.iloc[:,2].apply(len)
+            def sum_attrib(x):
+                idxs = [index_map[y] for y in set(x[2])]
+                r = self.attributes.values[idxs,:].sum(axis=0)
+                return np.append(r, [len(x[2])])
+            
+            cdata = np.apply_along_axis(sum_attrib, 1, self.network)
+            cdata = p.DataFrame(cdata, columns=list(self.attributes.columns) + ['len'], index=self.network.index)
             cdata = cdata.astype(np.uint32)
             
             Fj = self.attributes.sum().astype(np.uint32)
