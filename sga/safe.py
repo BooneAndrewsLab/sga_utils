@@ -92,8 +92,9 @@ class Safe(object):
         # Convert p-values into normalized neighborhood enrichment scores
         # Min p-value that Matlab can calculate: Pmin = 10**(-16) => -log10(Pmin) = 16.0
         p = min(-np.log10(p), 16.0) / 16.0
-        if p < (-np.log10(0.05/len(Fj)) / 16.0): # Significantly enriched attributes
-            p = 0.0
+#        if p < (-np.log10(0.05/len(Fj)) / 16.0): # Significantly enriched attributes
+#            p = 0.0
+
         return p
 
     def hyperwrap(self, U, Sij, N, Fj):
